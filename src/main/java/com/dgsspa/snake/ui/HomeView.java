@@ -13,15 +13,17 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @AnonymousAllowed
 public class HomeView extends VerticalLayout {
 
+    private int initialRowIndex;
     private VerticalLayout gridLayout;
     private int currentRowIndex = 0;
     private int gridSize = 50; // Aggiunta della variabile gridSize
 
-    private Button colorForwardResetBackwardButton;
-    private Button colorBackwardResetForwardButton;
+    private Button tastoGiu;
+    private Button tastoSu;
 
     private int moveInterval = 500; // Intervallo di movimento in millisecondi
     private boolean isMoving = false;
+
     public HomeView() {
         // Centered H1
         H1 welcomeHeader = new H1("Benvenuto su SnaCkF");
@@ -42,34 +44,34 @@ public class HomeView extends VerticalLayout {
         Button stopButton = new Button("Stop");
 
         // Inizializzazione dei pulsanti colorForwardResetBackwardButton e colorBackwardResetForwardButton
-        colorForwardResetBackwardButton = new Button("Giu");
-        colorBackwardResetForwardButton = new Button("Su");
+        tastoGiu = new Button("Giu");
+        tastoSu = new Button("Su");
 
         // Imposta i pulsanti inizialmente disabilitati
-        colorForwardResetBackwardButton.setEnabled(false);
-        colorBackwardResetForwardButton.setEnabled(false);
+        tastoGiu.setEnabled(false);
+        tastoSu.setEnabled(false);
 
         // Aggiungi gli ascoltatori ai pulsanti
-        colorForwardResetBackwardButton.addClickListener(e -> colorForwardResetBackward());
-        colorBackwardResetForwardButton.addClickListener(e -> colorBackwardResetForward());
+        tastoGiu.addClickListener(e -> colorForwardResetBackward());
+        tastoSu.addClickListener(e -> colorBackwardResetForward());
 
         // Aggiungi i pulsanti al layout di controllo
-        controlLayout.add(startButton, stopButton, colorForwardResetBackwardButton, colorBackwardResetForwardButton);
+        controlLayout.add(startButton, stopButton, tastoGiu, tastoSu);
 
         // Aggiungi un gestore di eventi per il pulsante "Start"
         startButton.addClickListener(e -> {
             colorCells();
             // Abilita i pulsanti colorForwardResetBackwardButton e colorBackwardResetForwardButton
-            colorForwardResetBackwardButton.setEnabled(true);
-            colorBackwardResetForwardButton.setEnabled(true);
+            tastoGiu.setEnabled(true);
+            tastoSu.setEnabled(true);
         });
 
         // Aggiungi un gestore di eventi per il pulsante "Stop"
         stopButton.addClickListener(e -> {
             resetCellColors();
             // Disabilita i pulsanti colorForwardResetBackwardButton e colorBackwardResetForwardButton
-            colorForwardResetBackwardButton.setEnabled(false);
-            colorBackwardResetForwardButton.setEnabled(false);
+            tastoGiu.setEnabled(false);
+            tastoSu.setEnabled(false);
         });
 
         // Main layout with three columns
@@ -112,11 +114,10 @@ public class HomeView extends VerticalLayout {
     }
 
     private void colorCells() {
-        // Ottieni la dimensione della griglia
-        int gridSize = 50;
-
-        // Calcola l'indice della cella centrale
         int centerIndex = gridSize / 2;
+
+        // Imposta la posizione iniziale
+        initialRowIndex = centerIndex;
 
         // Colora la cella centrale
         colorCell(centerIndex, centerIndex);
@@ -126,21 +127,14 @@ public class HomeView extends VerticalLayout {
         colorCell(centerIndex + 1, centerIndex);
     }
 
+
     private void resetCellColors() {
-        // Ottieni la dimensione della griglia
-        int gridSize = 50;
-
-        // Calcola l'indice della cella centrale
-        int centerIndex = gridSize / 2;
-
-        // Annulla il colore della cella centrale
-        resetCellColor(centerIndex, centerIndex);
-
-        // Annulla il colore delle celle laterali
-        resetCellColor(centerIndex - 1, centerIndex);
-        resetCellColor(centerIndex + 1, centerIndex);
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                resetCellColor(i, j);
+            }
+        }
     }
-
     private void colorCell(int rowIndex, int colIndex) {
         // Imposta il colore della cella alla posizione specificata
         Div cell = (Div) ((HorizontalLayout) gridLayout.getComponentAt(rowIndex)).getComponentAt(colIndex);
@@ -153,29 +147,34 @@ public class HomeView extends VerticalLayout {
         cell.getStyle().set("background-color", "#D3D3D3");
     }
 
-    private void colorForwardResetBackward() {
-        // Colora la cella nella riga corrente e colonna centrale
-        colorCell(currentRowIndex, gridSize / 2);
-        colorCell((currentRowIndex + 1) % gridSize, gridSize / 2);
-        colorCell((currentRowIndex + 2) % gridSize, gridSize / 2);
 
-        // Resetta la cella nella riga precedente e colonna centrale
-        resetCellColor((currentRowIndex - 1 + gridSize) % gridSize, gridSize / 2);
-        resetCellColor((currentRowIndex - 2 + gridSize) % gridSize, gridSize / 2);
+    private void colorForwardResetBackward() {
+        int centerIndex = gridSize / 2;
 
         // Sposta la riga corrente in avanti
-        currentRowIndex = (currentRowIndex + 1) % gridSize;
+        initialRowIndex = (initialRowIndex + 1) % gridSize;
+
+        // Resetta la cella nella riga precedente e colonna centrale
+        resetCellColor((initialRowIndex - 2 + gridSize) % gridSize, centerIndex);
+
+        // Colora le celle nella riga corrente e colonna centrale
+        colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
+        colorCell(initialRowIndex, centerIndex);
+        colorCell((initialRowIndex + 1) % gridSize, centerIndex);
     }
 
-    private void colorBackwardResetForward() { colorCell(currentRowIndex, gridSize / 2);
-        colorCell((currentRowIndex - 1 + gridSize) % gridSize, gridSize / 2);
-        colorCell((currentRowIndex - 2 + gridSize) % gridSize, gridSize / 2);
-
-        // Resetta la cella nella riga successiva e colonna centrale
-        resetCellColor((currentRowIndex + 1) % gridSize, gridSize / 2);
-        resetCellColor((currentRowIndex + 2) % gridSize, gridSize / 2);
+    private void colorBackwardResetForward() {
+        int centerIndex = gridSize / 2;
 
         // Sposta la riga corrente all'indietro
-        currentRowIndex = (currentRowIndex - 1 + gridSize) % gridSize;
+        initialRowIndex = (initialRowIndex - 1 + gridSize) % gridSize;
+
+        // Resetta la cella nella riga successiva e colonna centrale
+        resetCellColor((initialRowIndex + 2) % gridSize, centerIndex);
+
+        // Colora le celle nella riga corrente e colonna centrale
+        colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
+        colorCell(initialRowIndex, centerIndex);
+        colorCell((initialRowIndex + 1) % gridSize, centerIndex);
     }
 }
