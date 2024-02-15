@@ -58,7 +58,7 @@ public class HomeView extends VerticalLayout {
         gridLayout.getStyle().set("margin", "auto");
 
         HorizontalLayout centeredLayout = new HorizontalLayout();
-        centeredLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        centeredLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         centeredLayout.add(gridLayout);
 
         VerticalLayout controlLayout = new VerticalLayout();
@@ -74,9 +74,10 @@ public class HomeView extends VerticalLayout {
         upButton.setEnabled(false);
         leftButton.setEnabled(false);
         rightButton.setEnabled(false);
+        stopButton.setEnabled(false);
 
-        downButton.addClickListener(e -> moveUp());
-        upButton.addClickListener(e -> moveDown());
+        downButton.addClickListener(e -> moveDown());
+        upButton.addClickListener(e -> moveUp());
         leftButton.addClickListener(e -> moveLeft());
         rightButton.addClickListener(e -> moveRight());
 
@@ -86,14 +87,18 @@ public class HomeView extends VerticalLayout {
             gameRunning = true;
             colorCells();
             enableAllButtons();
-            addFood();
+//            addFood();
+            startButton.setEnabled(false);
+            stopButton.setEnabled(true);
+            startMoving();
         });
 
         stopButton.addClickListener(e -> {
+            gameRunning = false;
             resetCellColors();
             disableAllButtons();
             scheduler.shutdown();
-            gameRunning = false;
+            startButton.setEnabled(true);
         });
 
         HorizontalLayout mainLayout = new HorizontalLayout();
@@ -172,20 +177,6 @@ public class HomeView extends VerticalLayout {
     private void moveUp() {
         int centerIndex = gridSize / 2;
 
-        initialRowIndex = (initialRowIndex - 1 + gridSize) % gridSize;
-        resetCellColor((initialRowIndex + 2) % gridSize, centerIndex);
-
-        rotateCell((initialRowIndex + 1) % gridSize, centerIndex);
-        rotateCell(initialRowIndex, centerIndex);
-
-        colorCell((initialRowIndex + 1) % gridSize, centerIndex);
-        colorCell(initialRowIndex, centerIndex);
-        colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
-    }
-
-    private void moveDown() {
-        int centerIndex = gridSize / 2;
-
         initialRowIndex = (initialRowIndex + 1) % gridSize;
         resetCellColor((initialRowIndex - 2 + gridSize) % gridSize, centerIndex);
 
@@ -195,6 +186,20 @@ public class HomeView extends VerticalLayout {
         colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
         colorCell(initialRowIndex, centerIndex);
         colorCell((initialRowIndex + 1) % gridSize, centerIndex);
+    }
+
+    private void moveDown() {
+        int centerIndex = gridSize / 2;
+
+        initialRowIndex = (initialRowIndex - 1 + gridSize) % gridSize;
+        resetCellColor((initialRowIndex + 2) % gridSize, centerIndex);
+
+        rotateCell((initialRowIndex + 1) % gridSize, centerIndex);
+        rotateCell(initialRowIndex, centerIndex);
+
+        colorCell((initialRowIndex + 1) % gridSize, centerIndex);
+        colorCell(initialRowIndex, centerIndex);
+        colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
     }
 
     private void moveRight() {
@@ -227,6 +232,33 @@ public class HomeView extends VerticalLayout {
         colorCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
 
         initialRowIndex = centerIndex;
+    }
+
+    private void startMoving() {
+//        String direction = "left";
+//                    switch (direction) {
+//                        case "down":
+//                            ui.access(this::moveUp);
+//                            break;
+//                        case "up":
+//                            ui.access(this::moveDown);
+//                            break;
+//                        case "left":
+//                            ui.access(this::moveLeft);
+//                            break;
+//                        case "right":
+//                            ui.access(this::moveRight);
+//                            break;
+//                    }
+        ui.access(this::moveUp);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (gameRunning) {
+                    startMoving();
+                }
+            }
+        }, 1000);
     }
 
     private void rotateCell(int rowIndex, int colIndex) {
@@ -274,7 +306,7 @@ public class HomeView extends VerticalLayout {
                         addFood();
                     });
                 }
-            }, 500);
+            }, 5000);
         }
     }
 
