@@ -7,3 +7,5 @@ import com.vaadin.flow.component.page.Push;
 public class AppShellConfig implements AppShellConfigurator {
 
 }
+
+
