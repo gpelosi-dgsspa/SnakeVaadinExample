@@ -12,6 +12,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -19,6 +20,9 @@ import java.util.concurrent.ScheduledExecutorService;
 @Route("")
 @AnonymousAllowed
 public class HomeView extends VerticalLayout {
+
+    private List<Point> snakeCoordinates = new ArrayList<>();
+
 
     private int initialRowIndex;
     private int initialColIndex;
@@ -41,9 +45,23 @@ public class HomeView extends VerticalLayout {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private boolean gameRunning = false;
+    boolean isGoingUp = true;
+    boolean isGoingDown = true;
+
+    boolean isGoingLeft = true;
+    boolean isGoingRight = true;
+
 
     // Costruttore principale della classe
     public HomeView() {
+
+        initialRowIndex = gridSize / 2;
+        initialColIndex = gridSize / 2;
+
+        snakeCoordinates.add(new Point(initialRowIndex, initialColIndex));
+        snakeCoordinates.add(new Point(initialRowIndex - 1, initialColIndex)); // Cella sopra il centro
+        snakeCoordinates.add(new Point(initialRowIndex + 1, initialColIndex)); // Cella sotto il centro
+
 
         timer = new Timer();
 
@@ -83,6 +101,7 @@ public class HomeView extends VerticalLayout {
         controlLayout.add(startButton, stopButton, downButton, upButton, leftButton, rightButton);
 
         startButton.addClickListener(e -> {
+
             gameRunning = true;
             colorCells();
             enableAllButtons();
@@ -170,63 +189,111 @@ public class HomeView extends VerticalLayout {
     }
 
     private void moveUp() {
-        int centerIndex = gridSize / 2;
+        isGoingDown = false;
+        isGoingLeft=true;
+        isGoingRight=true;
+        if (isGoingUp) {
+            System.out.println("Coordinate iniziali: " + snakeCoordinates);
 
-        initialRowIndex = (initialRowIndex - 1 + gridSize) % gridSize;
-        resetCellColor((initialRowIndex + 2) % gridSize, centerIndex);
+            snakeCoordinates.remove(snakeCoordinates.size() - 1);
+            int newHeadRowIndex = (snakeCoordinates.get(0).x - 1 + gridSize) % gridSize;
+            int newHeadColIndex = snakeCoordinates.get(0).y;
+            snakeCoordinates.add(0, new Point(newHeadRowIndex, newHeadColIndex));
 
-        rotateCell((initialRowIndex + 1) % gridSize, centerIndex);
-        rotateCell(initialRowIndex, centerIndex);
 
-        colorCell((initialRowIndex + 1) % gridSize, centerIndex);
-        colorCell(initialRowIndex, centerIndex);
-        colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
+            initialRowIndex = (initialRowIndex - 1 + gridSize) % gridSize;
+            resetCellColor((newHeadRowIndex + 2) % gridSize, newHeadColIndex);
+
+            rotateCell((newHeadRowIndex + 1) % gridSize, newHeadColIndex);
+            rotateCell(newHeadRowIndex, newHeadColIndex);
+
+            colorCell((newHeadRowIndex + 1) % gridSize, newHeadColIndex);
+            colorCell(newHeadRowIndex, newHeadColIndex);
+            colorCell((newHeadRowIndex - 1 + gridSize) % gridSize, newHeadColIndex);
+            System.out.println("Coordinate dopo il movimento: " + snakeCoordinates);
+        }
+
     }
 
     private void moveDown() {
-        int centerIndex = gridSize / 2;
+        isGoingUp = false;
+        isGoingLeft=true;
+        isGoingRight=true;
+        if (isGoingDown) {
+            System.out.println("Coordinate iniziali: " + snakeCoordinates);
 
-        initialRowIndex = (initialRowIndex + 1) % gridSize;
-        resetCellColor((initialRowIndex - 2 + gridSize) % gridSize, centerIndex);
+            // Rimuovi l'ultimo elemento (coda del serpente)
+            snakeCoordinates.remove(snakeCoordinates.size() - 1);
 
-        rotateCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
-        rotateCell(initialRowIndex, centerIndex);
+            // Calcola la nuova posizione della testa del serpente
+            int newHeadRowIndex = (snakeCoordinates.get(0).x + 1) % gridSize;
+            int newHeadColIndex = snakeCoordinates.get(0).y;
 
-        colorCell((initialRowIndex - 1 + gridSize) % gridSize, centerIndex);
-        colorCell(initialRowIndex, centerIndex);
-        colorCell((initialRowIndex + 1) % gridSize, centerIndex);
+            // Stampa le nuove coordinate della testa del serpente
+            System.out.println("Nuove coordinate della testa: (" + newHeadRowIndex + ", " + newHeadColIndex + ")");
+
+            // Aggiungi la nuova testa del serpente alla lista
+            snakeCoordinates.add(0, new Point(newHeadRowIndex, newHeadColIndex));
+
+            // Resetta il colore della cella precedente
+            resetCellColor((newHeadRowIndex - 2 + gridSize) % gridSize, newHeadColIndex);
+
+            // Ruota e colora le nuove celle del serpente
+            rotateCell((newHeadRowIndex - 1 + gridSize) % gridSize, newHeadColIndex);
+            rotateCell(newHeadRowIndex, newHeadColIndex);
+
+            colorCell((newHeadRowIndex - 1 + gridSize) % gridSize, newHeadColIndex);
+            colorCell(newHeadRowIndex, newHeadColIndex);
+            colorCell((newHeadRowIndex + 1) % gridSize, newHeadColIndex);
+
+            // Stampa le coordinate dopo il movimento
+            System.out.println("Coordinate dopo il movimento: " + snakeCoordinates);
+        }
     }
 
+
     private void moveRight() {
-        int centerIndex = gridSize / 2;
+        isGoingLeft = false;
+        isGoingDown = true;
+        isGoingUp = true;
 
-        initialColIndex = (initialColIndex + 1) % gridSize;
-        resetCellColor(centerIndex, (initialColIndex - 2 + gridSize) % gridSize);
+        if (isGoingRight) {
+            int centerIndex = gridSize / 2;
 
-        rotateCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
-        rotateCell(centerIndex, initialColIndex);
+            initialColIndex = (initialColIndex + 1) % gridSize;
+            resetCellColor(centerIndex, (initialColIndex - 2 + gridSize) % gridSize);
 
-        colorCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
-        colorCell(centerIndex, initialColIndex);
-        colorCell(centerIndex, (initialColIndex + 1) % gridSize);
+            rotateCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
+            rotateCell(centerIndex, initialColIndex);
 
-        initialRowIndex = centerIndex;
+            colorCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
+            colorCell(centerIndex, initialColIndex);
+            colorCell(centerIndex, (initialColIndex + 1) % gridSize);
+
+            initialRowIndex = centerIndex;
+        }
     }
 
     private void moveLeft() {
-        int centerIndex = gridSize / 2;
+        isGoingRight=false;
+        isGoingDown = true;
+        isGoingUp = true;
 
-        initialColIndex = (initialColIndex - 1 + gridSize) % gridSize;
-        resetCellColor(centerIndex, (initialColIndex + 2) % gridSize);
+        if(isGoingLeft) {
+            int centerIndex = gridSize / 2;
 
-        rotateCell(centerIndex, (initialColIndex + 1) % gridSize);
-        rotateCell(centerIndex, initialColIndex);
+            initialColIndex = (initialColIndex - 1 + gridSize) % gridSize;
+            resetCellColor(centerIndex, (initialColIndex + 2) % gridSize);
 
-        colorCell(centerIndex, (initialColIndex + 1) % gridSize);
-        colorCell(centerIndex, initialColIndex);
-        colorCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
+            rotateCell(centerIndex, (initialColIndex + 1) % gridSize);
+            rotateCell(centerIndex, initialColIndex);
 
-        initialRowIndex = centerIndex;
+            colorCell(centerIndex, (initialColIndex + 1) % gridSize);
+            colorCell(centerIndex, initialColIndex);
+            colorCell(centerIndex, (initialColIndex - 1 + gridSize) % gridSize);
+
+            initialRowIndex = centerIndex;
+        }
     }
 
     private void rotateCell(int rowIndex, int colIndex) {
@@ -274,7 +341,7 @@ public class HomeView extends VerticalLayout {
                         addFood();
                     });
                 }
-            }, 500);
+            }, 500000);
         }
     }
 
