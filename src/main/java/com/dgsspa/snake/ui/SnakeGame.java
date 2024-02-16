@@ -35,7 +35,6 @@ public class SnakeGame extends VerticalLayout {
     private Direction direction;
     private boolean isRunning = true;
 
-    private boolean thereIsFood = false;
 
     private UI ui;
 
@@ -44,7 +43,7 @@ public class SnakeGame extends VerticalLayout {
 
     private static final int gridSize = 24;
     private static final int defaultSnakePosition =5;
-    private static final int snakeSpid = 500;
+    private static final int snakeSpid = 300;
 
     private VerticalLayout playGrid;
 
@@ -158,7 +157,7 @@ public class SnakeGame extends VerticalLayout {
         moveDown.setEnabled(true);
         moveLeft.setEnabled(true);
         moveRight.setEnabled(true);
-
+        startGame.setDisableOnClick(true);
 
         return gameFooter;
     }
@@ -243,7 +242,7 @@ public class SnakeGame extends VerticalLayout {
 
     // Metodo principale per il movimento del serpente
     private void startSnakeMovement() {
-        startGame.setEnabled(false);
+
         if(isRunning) {
             ui.access(() -> {
                 moveSnake();
@@ -375,7 +374,6 @@ public class SnakeGame extends VerticalLayout {
         if(foodCell.getType()==CellType.EMPTY){
             foodCell.setType(CellType.FOOD);
             foodCell.getStyle().set("background-color", "red");
-            thereIsFood=true;
         }
 
 
